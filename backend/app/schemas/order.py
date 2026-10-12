@@ -23,6 +23,7 @@ class OrderRead(BaseModel):
     currency: str
     stripe_payment_intent_id: str | None = None
     created_at: datetime | None = None
+    paid_at: datetime | None = None
     items: list[OrderItemRead] = []
     model_config = ConfigDict(from_attributes=True)
 
@@ -34,3 +35,5 @@ class CheckoutResponse(BaseModel):
     currency: str
     session_id: str
     checkout_url: str
+    payment_intent_id: str | None = None
+    client_secret: str | None = None

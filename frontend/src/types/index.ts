@@ -53,5 +53,6 @@ export type Order = {
   currency: string;
   stripe_payment_intent_id?: string | null;
   created_at?: string;
+  paid_at?: string;
   items: OrderItem[];
 };

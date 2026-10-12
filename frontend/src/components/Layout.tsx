@@ -22,6 +22,7 @@ export default function Layout() {
           <nav className="main-nav" aria-label="Main navigation">
             <NavLink to="/" end>Shop</NavLink>
             {token && <NavLink to="/orders">Orders</NavLink>}
+            {token && <NavLink to="/account">My Account</NavLink>}
             {token && (
               <NavLink to="/cart" className="cart-link">
                 Cart {!!cart?.item_count && <span className="badge">{cart.item_count}</span>}
@@ -31,7 +32,11 @@ export default function Layout() {
           <div className="nav-actions">
             {token ? (
               <>
-                {user && <span className="welcome">Hi, {user.full_name.split(' ')[0]}</span>}
+                {user && (
+                  <Link to="/account" className="welcome user-pill" title="Go to My Account">
+                    👤 Hi, {user.full_name.split(' ')[0]}
+                  </Link>
+                )}
                 <button className="secondary-btn" onClick={logout}>Logout</button>
               </>
             ) : (

@@ -25,7 +25,7 @@ def create_checkout_order(db: Session, user_id: int) -> tuple[Order, list[OrderI
         payment_status="pending",
         subtotal=0,
         total_amount=0,
-        currency=settings.stripe_currency,
+        currency="inr",
     )
     db.add(order)
     db.flush()

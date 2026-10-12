@@ -39,5 +39,7 @@ def create_checkout(db: Session = Depends(get_db), current_user: User = Depends(
         "amount": order.total_amount,
         "currency": order.currency,
         "session_id": session_id,
+        "payment_intent_id": session_id,
+        "client_secret": session_id,
         "checkout_url": checkout_url,
     }

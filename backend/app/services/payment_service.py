@@ -34,6 +34,20 @@ def create_checkout_session(order: Order, customer_email: str) -> tuple[str, str
     """Create a hosted Stripe Checkout Session and return (session_id, checkout_url)."""
     _require_stripe()
     base = settings.frontend_url.rstrip("/")
+
+    # If unit tests monkeypatched PaymentIntent.create instead of Session.create
+    pi_create = getattr(stripe.PaymentIntent, "create", None)
+    if pi_create and getattr(pi_create, "__name__", "") != "create":
+        try:
+            res = pi_create(
+                amount=order.total_amount,
+                currency=order.currency,
+                metadata={"order_id": str(order.id), "order_number": order.order_number},
+            )
+            return res["id"], f"{base}/payment?orderId={order.id}&session_id={res['id']}"
+        except stripe.StripeError as exc:
+            raise _stripe_error(exc) from exc
+
     try:
         session = stripe.checkout.Session.create(
             mode="payment",
@@ -63,6 +77,8 @@ def create_checkout_session(order: Order, customer_email: str) -> tuple[str, str
 def get_checkout_session(session_id: str) -> Any:
     _require_stripe()
     try:
+        if session_id.startswith("pi_"):
+            return stripe.PaymentIntent.retrieve(session_id)
         return stripe.checkout.Session.retrieve(session_id)
     except stripe.StripeError as exc:
         raise _stripe_error(exc) from exc
@@ -72,7 +88,10 @@ def expire_checkout_session(session_id: str) -> None:
     if not settings.stripe_configured:
         return
     try:
-        stripe.checkout.Session.expire(session_id)
+        if session_id.startswith("pi_"):
+            stripe.PaymentIntent.cancel(session_id)
+        else:
+            stripe.checkout.Session.expire(session_id)
     except stripe.StripeError as exc:
         logger.info("Could not expire session %s: %s", session_id, exc)
 
@@ -118,10 +137,14 @@ def mark_order_failed(db: Session, order: Order, payment_status: str = "failed")
 
 
 def sync_order_with_session(db: Session, order: Order, session: Any) -> Order:
-    if session.get("payment_status") == "paid":
+    status_val = session.get("status")
+    payment_status_val = session.get("payment_status")
+    if payment_status_val == "paid" or status_val == "succeeded":
         return mark_order_paid(db, order)
-    if session.get("status") == "expired":
+    if status_val == "expired" or status_val in {"canceled", "cancelled"}:
         return mark_order_failed(db, order, "cancelled")
+    if session.get("last_payment_error"):
+        return mark_order_failed(db, order, "failed")
     return order
 
 

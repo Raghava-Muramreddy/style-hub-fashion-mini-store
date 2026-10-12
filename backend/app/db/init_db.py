@@ -19,7 +19,7 @@ def create_tables() -> None:
 
 
 def convert_legacy_usd_products(session: Session) -> None:
-    """Move catalog products seeded in USD to INR prices (existing orders keep their own currency)."""
+    """Move catalog products and orders seeded in USD to INR."""
     for product in session.scalars(select(Product).where(Product.currency == "usd")).all():
         rupees = PRICES_INR.get(product.name)
         if rupees is not None:
@@ -27,6 +27,8 @@ def convert_legacy_usd_products(session: Session) -> None:
         else:
             product.price = round(product.price * 83 / 10000) * 100
         product.currency = CURRENCY
+    for order in session.scalars(select(Order).where(Order.currency == "usd")).all():
+        order.currency = CURRENCY
     session.commit()
 
 
