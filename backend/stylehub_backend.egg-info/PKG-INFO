@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: stylehub-backend
+Version: 0.1.0
+Summary: StyleHub FastAPI backend
+Requires-Python: >=3.11
+Requires-Dist: fastapi==0.115.0
+Requires-Dist: uvicorn[standard]==0.30.6
+Requires-Dist: sqlalchemy==2.0.36
+Requires-Dist: alembic==1.13.3
+Requires-Dist: pydantic-settings==2.5.2
+Requires-Dist: passlib[bcrypt]==1.7.4
+Requires-Dist: bcrypt==4.1.2
+Requires-Dist: python-jose[cryptography]==3.3.0
+Requires-Dist: python-multipart==0.0.9
+Requires-Dist: stripe==10.12.0
+Requires-Dist: email-validator==2.2.0
